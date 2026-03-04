@@ -24,8 +24,47 @@ diff '--color=auto' -ruN '--exclude=.git' clean-post-strncpy/kernel/kernel_compa
  
 diff '--color=auto' -ruN '--exclude=.git' clean-post-strncpy/kernel/kernel_umount.c work/kernel/kernel_umount.c
 --- clean-post-strncpy/kernel/kernel_umount.c	2026-03-02 18:36:28.893397179 +0100
-+++ work/kernel/kernel_umount.c	2026-03-04 22:21:01.161243586 +0100
-@@ -141,7 +141,7 @@
++++ work/kernel/kernel_umount.c	2026-03-05 00:33:31.462453301 +0100
+@@ -9,6 +9,9 @@
+ #include <linux/path.h>
+ #include <linux/printk.h>
+ #include <linux/types.h>
++#include <linux/version.h>
++#include <linux/syscalls.h>
++#include <linux/uaccess.h>
+ 
+ #include "kernel_umount.h"
+ #include "klog.h" // IWYU pragma: keep
+@@ -41,6 +44,7 @@
+     .set_handler = kernel_umount_feature_set,
+ };
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+ extern int path_umount(struct path *path, int flags);
+ 
+ static void ksu_umount_mnt(struct path *path, int flags)
+@@ -50,6 +54,20 @@
+         pr_info("umount %s failed: %d\n", path->dentry->d_iname, err);
+     }
+ }
++#else
++static void ksu_umount_mnt(struct path *path, int flags)
++{
++    char buf[384] = { 0 };
++    char *realpath = d_path(path, buf, sizeof(buf) - 1);
++    path_put(path);
++    if (IS_ERR_OR_NULL(realpath))
++        return;
++    mm_segment_t old_fs = get_fs();
++    set_fs(KERNEL_DS);
++    ksys_umount((char __user *)realpath, flags);
++    set_fs(old_fs);
++}
++#endif
+ 
+ void try_umount(const char *mnt, int flags)
+ {
+@@ -141,7 +159,7 @@
  
      tw->cb.func = umount_tw_func;
  
@@ -206,8 +245,39 @@ diff '--color=auto' -ruN '--exclude=.git' clean-post-strncpy/kernel/setuid_hook.
          ksu_set_task_tracepoint_flag(current);
 diff '--color=auto' -ruN '--exclude=.git' clean-post-strncpy/kernel/su_mount_ns.c work/kernel/su_mount_ns.c
 --- clean-post-strncpy/kernel/su_mount_ns.c	2026-03-02 18:36:28.895068295 +0100
-+++ work/kernel/su_mount_ns.c	2026-03-04 22:21:01.182274948 +0100
-@@ -201,7 +201,7 @@
++++ work/kernel/su_mount_ns.c	2026-03-05 00:33:40.422357335 +0100
+@@ -20,9 +20,30 @@
+ #include "ksu.h"
+ #include "su_mount_ns.h"
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)
+ extern int path_mount(const char *dev_name, struct path *path,
+                       const char *type_page, unsigned long flags,
+                       void *data_page);
++#else
++#include <linux/uaccess.h>
++static int path_mount(const char *dev_name, struct path *path,
++                      const char *type_page, unsigned long flags,
++                      void *data_page)
++{
++    char buf[384] = { 0 };
++    mm_segment_t old_fs;
++    long ret;
++    char *realpath = d_path(path, buf, sizeof(buf) - 1);
++    if (IS_ERR_OR_NULL(realpath))
++        return -ENOENT;
++    old_fs = get_fs();
++    set_fs(KERNEL_DS);
++    ret = do_mount(dev_name, (const char __user *)realpath, type_page, flags,
++                   data_page);
++    set_fs(old_fs);
++    return ret;
++}
++#endif
+ 
+ #if defined(__aarch64__)
+ extern long __arm64_sys_setns(const struct pt_regs *regs);
+@@ -201,7 +222,7 @@
      }
      tw->cb.func = ksu_setup_mount_ns_tw_func;
      tw->ns_mode = ns_mode;
