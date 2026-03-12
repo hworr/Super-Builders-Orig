@@ -360,12 +360,10 @@ jobs:
           cd kernel_platform
           python3 build_with_bazel.py -t "$CPUD" "$BUILD_METHOD" || BUILD_RC=$?
           cd ..
-        elif [ -n "$CPUD" ] && [ -f "kernel_platform/oplus/build/oplus_build_kernel.sh" ] && [ -f "kernel_platform/oplus/build/oplus_setup.sh" ]; then
-          cd kernel_platform
+        elif [ -n "$CPUD" ] && [ -f "kernel_platform/oplus/build/oplus_build_kernel.sh" ] && [ -f "kernel_platform/build/android/prepare_vendor.sh" ]; then
           LTO="${LTO_MODE}" SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 \
             KMI_SYMBOL_LIST_STRICT_MODE=0 \
-            bash oplus/build/oplus_build_kernel.sh "$CPUD" "$BUILD_METHOD" || BUILD_RC=$?
-          cd ..
+            bash kernel_platform/oplus/build/oplus_build_kernel.sh "$CPUD" "$BUILD_METHOD" || BUILD_RC=$?
         else
           cd "$KERNEL_COMMON"
           make O=out ARCH=arm64 LLVM=1 \
