@@ -15,79 +15,8 @@
       "system_dlkm.img",
       "vendor_dlkm.img",
       "vendor_boot.img"
-    ]
-  },
-  "oneplus_15_aosp_b": {
-    "brand": "oneplus",
-    "name": "OnePlus 15 (AOSP)",
-    "soc": "sm8850",
-    "codename": "canoe",
-    "android_version": "android16",
-    "kernel_version": "6.12",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8850",
-    "hmbird": true,
-    "extra_artifacts": [
-      "dtbo.img",
-      "system_dlkm.img",
-      "vendor_dlkm.img",
-      "vendor_boot.img"
-    ]
-  },
-  "oneplus_15r_b": {
-    "brand": "oneplus",
-    "name": "OnePlus 15R",
-    "soc": "sm8850",
-    "codename": "canoe",
-    "android_version": "android16",
-    "kernel_version": "6.12",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8850",
-    "hmbird": true,
-    "extra_artifacts": [
-      "dtbo.img",
-      "system_dlkm.img",
-      "vendor_dlkm.img",
-      "vendor_boot.img"
-    ]
-  },
-  "oneplus_ace_6_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace 6",
-    "soc": "sm8850",
-    "codename": "canoe",
-    "android_version": "android16",
-    "kernel_version": "6.12",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8850",
-    "hmbird": true,
-    "extra_artifacts": [
-      "dtbo.img",
-      "system_dlkm.img",
-      "vendor_dlkm.img",
-      "vendor_boot.img"
-    ]
-  },
-  "oneplus_ace_6t_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace 6T",
-    "soc": "sm8850",
-    "codename": "canoe",
-    "android_version": "android16",
-    "kernel_version": "6.12",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8850",
-    "hmbird": true,
-    "extra_artifacts": [
-      "dtbo.img",
-      "system_dlkm.img",
-      "vendor_dlkm.img",
-      "vendor_boot.img"
-    ]
+    ],
+    "manifest_file": "oneplus_15.xml"
   },
   "oneplus_13_b": {
     "brand": "oneplus",
@@ -146,42 +75,6 @@
   "oneplus_ace5_pro_b": {
     "brand": "oneplus",
     "name": "OnePlus Ace 5 Pro",
-    "soc": "sm8750",
-    "codename": "sun",
-    "android_version": "android16",
-    "kernel_version": "6.6",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8750",
-    "hmbird": true,
-    "extra_artifacts": [
-      "dtbo.img",
-      "system_dlkm.img",
-      "vendor_dlkm.img",
-      "vendor_boot.img"
-    ]
-  },
-  "oneplus_ace5_race_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace 5 Race",
-    "soc": "sm8750",
-    "codename": "sun",
-    "android_version": "android16",
-    "kernel_version": "6.6",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8750",
-    "hmbird": true,
-    "extra_artifacts": [
-      "dtbo.img",
-      "system_dlkm.img",
-      "vendor_dlkm.img",
-      "vendor_boot.img"
-    ]
-  },
-  "oneplus_ace5_ultra_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace 5 Ultra",
     "soc": "sm8750",
     "codename": "sun",
     "android_version": "android16",
@@ -493,19 +386,6 @@
     "hmbird": false,
     "extra_artifacts": []
   },
-  "oneplus_10r_v": {
-    "brand": "oneplus",
-    "name": "OnePlus 10R",
-    "soc": "sm8450",
-    "codename": "waipio",
-    "android_version": "android15",
-    "kernel_version": "5.10",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
   "oneplus_11r_v": {
     "brand": "oneplus",
     "name": "OnePlus 11R",
@@ -515,7 +395,7 @@
     "kernel_version": "5.10",
     "build_method": "perf",
     "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
+    "manifest_branch": "oneplus/sm8475",
     "hmbird": false,
     "extra_artifacts": []
   },
@@ -528,7 +408,7 @@
     "kernel_version": "5.10",
     "build_method": "perf",
     "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
+    "manifest_branch": "oneplus/sm8475",
     "hmbird": false,
     "extra_artifacts": []
   },
@@ -541,7 +421,7 @@
     "kernel_version": "5.10",
     "build_method": "perf",
     "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
+    "manifest_branch": "oneplus/sm8475",
     "hmbird": false,
     "extra_artifacts": []
   },
@@ -554,46 +434,7 @@
     "kernel_version": "5.10",
     "build_method": "perf",
     "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_ace_v": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace",
-    "soc": "sm8450",
-    "codename": "waipio",
-    "android_version": "android15",
-    "kernel_version": "5.10",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_ace_race_v": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace Racing",
-    "soc": "sm8450",
-    "codename": "waipio",
-    "android_version": "android15",
-    "kernel_version": "5.10",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_nord_3_v": {
-    "brand": "oneplus",
-    "name": "OnePlus Nord 3",
-    "soc": "sm8450",
-    "codename": "waipio",
-    "android_version": "android15",
-    "kernel_version": "5.10",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm8450",
+    "manifest_branch": "oneplus/sm8475",
     "hmbird": false,
     "extra_artifacts": []
   },
@@ -613,19 +454,6 @@
   "oneplus_ace_3v_b": {
     "brand": "oneplus",
     "name": "OnePlus Ace 3V",
-    "soc": "sm7675",
-    "codename": "crow",
-    "android_version": "android16",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7675",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_ace_2v_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Ace 2V",
     "soc": "sm7675",
     "codename": "crow",
     "android_version": "android16",
@@ -671,7 +499,7 @@
     "kernel_version": "6.1",
     "build_method": "perf",
     "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7675",
+    "manifest_branch": "oneplus/sm7550",
     "hmbird": false,
     "extra_artifacts": []
   },
@@ -684,98 +512,7 @@
     "kernel_version": "6.1",
     "build_method": "perf",
     "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7675",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_nord_ce5_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Nord CE5",
-    "soc": "sm7675",
-    "codename": "crow",
-    "android_version": "android16",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7675",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_nord_5_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Nord 5",
-    "soc": "sm7675",
-    "codename": "crow",
-    "android_version": "android16",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7675",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_nord_ce4_lite_5g_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Nord CE4 Lite 5G",
-    "soc": "sm7550",
-    "codename": "crow",
-    "android_version": "android16",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
     "manifest_branch": "oneplus/sm7550",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_pad_lite_v": {
-    "brand": "oneplus",
-    "name": "OnePlus Pad Lite",
-    "soc": "sm7550",
-    "codename": "crow",
-    "android_version": "android15",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7550",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oneplus_pad_go_2_b": {
-    "brand": "oneplus",
-    "name": "OnePlus Pad Go 2",
-    "soc": "sm7550",
-    "codename": "crow",
-    "android_version": "android16",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "OnePlusOSS/kernel_manifest",
-    "manifest_branch": "oneplus/sm7550",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oppo_k12_v": {
-    "brand": "oppo",
-    "name": "OPPO K12",
-    "soc": "sm7550",
-    "codename": "crow",
-    "android_version": "android15",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
-    "manifest_branch": "oppo/sm7550",
-    "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oppo_find_x5_pro_v": {
-    "brand": "oppo",
-    "name": "OPPO Find X5 Pro",
-    "soc": "sm8450",
-    "codename": "waipio",
-    "android_version": "android15",
-    "kernel_version": "5.10",
-    "build_method": "perf",
-    "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
-    "manifest_branch": "oppo/sm8450",
     "hmbird": false,
     "extra_artifacts": []
   },
@@ -816,7 +553,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "oppo/sm8475",
     "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "oppo_reno10_pro_plus_v.xml"
   },
   "oppo_reno_11_pro_5g_v": {
     "brand": "oppo",
@@ -829,20 +567,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "oppo/sm8475",
     "hmbird": false,
-    "extra_artifacts": []
-  },
-  "oppo_reno_11_pro_5g_b": {
-    "brand": "oppo",
-    "name": "OPPO Reno 11 Pro 5G",
-    "soc": "sm8475",
-    "codename": "waipio",
-    "android_version": "android16",
-    "kernel_version": "5.10",
-    "build_method": "perf",
-    "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
-    "manifest_branch": "oppo/sm8475",
-    "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "oppo_reno11_pro_5g_v.xml"
   },
   "oppo_reno_9_pro_plus_v": {
     "brand": "oppo",
@@ -855,7 +581,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "oppo/sm8475",
     "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "oppo_reno9_pro_plus_v.xml"
   },
   "oppo_find_n3_v": {
     "brand": "oppo",
@@ -1003,7 +730,8 @@
       "system_dlkm.img",
       "vendor_dlkm.img",
       "vendor_boot.img"
-    ]
+    ],
+    "manifest_file": "oppo_find_n5.xml"
   },
   "oppo_find_n5_b": {
     "brand": "oppo",
@@ -1039,7 +767,8 @@
       "system_dlkm.img",
       "vendor_dlkm.img",
       "vendor_boot.img"
-    ]
+    ],
+    "manifest_file": "oppo_find_x8_ultra.xml"
   },
   "oppo_find_x8_ultra_b": {
     "brand": "oppo",
@@ -1075,7 +804,8 @@
       "system_dlkm.img",
       "vendor_dlkm.img",
       "vendor_boot.img"
-    ]
+    ],
+    "manifest_file": "oppo_pad_4_pro.xml"
   },
   "oppo_pad_4_pro_b": {
     "brand": "oppo",
@@ -1094,19 +824,6 @@
       "vendor_dlkm.img",
       "vendor_boot.img"
     ]
-  },
-  "realme_neo_6_se_v": {
-    "brand": "realme",
-    "name": "Realme Neo 6 SE",
-    "soc": "sm7675",
-    "codename": "crow",
-    "android_version": "android15",
-    "kernel_version": "6.1",
-    "build_method": "perf",
-    "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
-    "manifest_branch": "realme/sm7675",
-    "hmbird": false,
-    "extra_artifacts": []
   },
   "realme_gt5_v": {
     "brand": "realme",
@@ -1145,7 +862,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "realme/sm8650",
     "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "realme_gt5pro_v.xml"
   },
   "realme_gt5_pro_b": {
     "brand": "realme",
@@ -1158,7 +876,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "realme/sm8650",
     "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "realme_gt5pro_b.xml"
   },
   "realme_gt6_v": {
     "brand": "realme",
@@ -1197,7 +916,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "realme/sm8650",
     "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "realme_gt_neo6_v.xml"
   },
   "realme_gt_neo_6_b": {
     "brand": "realme",
@@ -1210,7 +930,8 @@
     "manifest_repo": "Numbersf/Kernel_Manifest_Appendix",
     "manifest_branch": "realme/sm8650",
     "hmbird": false,
-    "extra_artifacts": []
+    "extra_artifacts": [],
+    "manifest_file": "realme_gt_neo6_b.xml"
   },
   "realme_gt7_pro_v": {
     "brand": "realme",
@@ -1228,7 +949,8 @@
       "system_dlkm.img",
       "vendor_dlkm.img",
       "vendor_boot.img"
-    ]
+    ],
+    "manifest_file": "realme_gt7_pro.xml"
   },
   "realme_gt7_pro_b": {
     "brand": "realme",

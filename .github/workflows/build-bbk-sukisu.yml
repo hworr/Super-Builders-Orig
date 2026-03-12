@@ -133,6 +133,8 @@ jobs:
         BUILD_METHOD=$(echo "$DEVICE_JSON" | jq -r '.build_method')
         MANIFEST_REPO=$(echo "$DEVICE_JSON" | jq -r '.manifest_repo')
         MANIFEST_BRANCH=$(echo "$DEVICE_JSON" | jq -r '.manifest_branch')
+        MANIFEST_FILE=$(echo "$DEVICE_JSON" | jq -r '.manifest_file // empty')
+        : "${MANIFEST_FILE:=${DEVICE_KEY}.xml}"
         HMBIRD=$(echo "$DEVICE_JSON" | jq -r '.hmbird // false')
         EXTRA_ARTIFACTS=$(echo "$DEVICE_JSON" | jq -r '.extra_artifacts // [] | join(",")')
 
@@ -170,6 +172,7 @@ jobs:
           echo "BUILD_METHOD=$BUILD_METHOD"
           echo "MANIFEST_REPO=$MANIFEST_REPO"
           echo "MANIFEST_BRANCH=$MANIFEST_BRANCH"
+          echo "MANIFEST_FILE=$MANIFEST_FILE"
           echo "HMBIRD=$HMBIRD"
           echo "EXTRA_ARTIFACTS=$EXTRA_ARTIFACTS"
           echo "VERSION_DIR=$VERSION_DIR"
@@ -187,7 +190,7 @@ jobs:
 
         repo init -u "https://github.com/${MANIFEST_REPO}.git" \
           -b "refs/heads/${MANIFEST_BRANCH}" \
-          -m "${DEVICE_KEY}.xml" --depth=1
+          -m "${MANIFEST_FILE}" --depth=1
 
         repo sync -c -j"$(nproc)" --no-tags --no-clone-bundle --force-sync --fail-fast
 
