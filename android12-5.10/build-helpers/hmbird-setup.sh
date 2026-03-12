@@ -51,6 +51,7 @@ DRIVER_FILE="${DRIVER_DIR}/hmbird_patch.c"
 
 cat > "$DRIVER_FILE" << 'CEOF'
 #include <linux/init.h>
+#include <linux/module.h>
 #include <linux/of.h>
 #include <linux/slab.h>
 
