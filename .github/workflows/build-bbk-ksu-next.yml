@@ -40,6 +40,10 @@ on:
         description: "KernelSU-Next commit (empty = pinned default)"
         type: string
         default: ""
+      rust_build:
+        description: "Enable Rust support (6.12+ vendor kernels)"
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       device:
@@ -66,6 +70,9 @@ on:
       sukisu_commit:
         type: string
         default: ""
+      rust_build:
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -199,6 +206,35 @@ jobs:
         echo "DEFCONFIG=$SYNC_DIR/kernel_platform/common/arch/arm64/configs/gki_defconfig" >> "$GITHUB_ENV"
         echo "DEFCONFIG_FRAGMENT=$SYNC_DIR/kernel_platform/common/arch/arm64/configs/sukisu_gki.fragment" >> "$GITHUB_ENV"
 
+    - name: Setup Rust Toolchain
+      if: inputs.rust_build
+      run: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
+        source "$HOME/.cargo/env"
+        cargo install bindgen-cli --version 0.69.5
+        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+        RUSTC_BIN=""
+        for base in "$SYNC_DIR/kernel_platform/prebuilts" "$SYNC_DIR/kernel_platform/prebuilts-master"; do
+          [ -d "$base/rust/linux-x86/" ] || continue
+          latest=$(ls -d "$base/rust/linux-x86/1."* 2>/dev/null | sort -V | head -n1 || true)
+          if [ -n "$latest" ] && [ -x "$latest/bin/rustc" ]; then
+            RUSTC_BIN="$latest/bin"
+            break
+          fi
+        done
+
+        CLANG_BIN=$(find "$SYNC_DIR/kernel_platform/prebuilts/clang/host/linux-x86/" -maxdepth 1 -type d -name 'clang-*' 2>/dev/null | sort -V | tail -1)
+
+        {
+          echo "RUST_BUILD=true"
+          [ -n "$RUSTC_BIN" ] && echo "RUSTC=$RUSTC_BIN/rustc"
+          [ -n "$CLANG_BIN" ] && echo "LIBCLANG_PATH=$(realpath "$CLANG_BIN")/lib"
+          echo "BINDGEN=bindgen"
+        } >> "$GITHUB_ENV"
+
+        echo "Rust: rustc=${RUSTC_BIN:-system} bindgen=$(which bindgen)"
+
     - name: ABI Bypass
       run: |
         cd "$SYNC_DIR"
@@ -319,6 +355,7 @@ jobs:
         ADD_ZEROMOUNT: ${{ inputs.add_zeromount }}
         ADD_KPM: ${{ inputs.add_kpm }}
         ADD_ZRAM: ${{ inputs.add_zram }}
+        ADD_RUST_BUILD: ${{ inputs.rust_build }}
         LTO_MODE: ${{ inputs.lto_mode }}
       run: |
         OEM_DEFCONFIG_SCRIPT="$OEM_HELPERS/assemble-oem-defconfig.sh"

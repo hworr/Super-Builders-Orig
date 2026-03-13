@@ -11,9 +11,10 @@ ADD_SUSFS="${ADD_SUSFS:-true}"
 ADD_ZEROMOUNT="${ADD_ZEROMOUNT:-true}"
 ADD_KPM="${ADD_KPM:-false}"
 ADD_ZRAM="${ADD_ZRAM:-false}"
+ADD_RUST_BUILD="${ADD_RUST_BUILD:-false}"
 KCONFIG_SEARCH_DIR="${KCONFIG_SEARCH_DIR:-}"
 
-echo "assemble-oem-defconfig: variant=${KSU_VARIANT} susfs=${ADD_SUSFS} zeromount=${ADD_ZEROMOUNT} kpm=${ADD_KPM} zram=${ADD_ZRAM}"
+echo "assemble-oem-defconfig: variant=${KSU_VARIANT} susfs=${ADD_SUSFS} zeromount=${ADD_ZEROMOUNT} kpm=${ADD_KPM} zram=${ADD_ZRAM} rust=${ADD_RUST_BUILD}"
 
 if [ ! -f "$DEFCONFIG" ]; then
   echo "::error::assemble-oem-defconfig: defconfig not found: ${DEFCONFIG}" >&2
@@ -60,6 +61,14 @@ if [ "$ADD_ZRAM" = "true" ]; then
   sed -i 's/CONFIG_ZSMALLOC=m/CONFIG_ZSMALLOC=y/g' "$DEFCONFIG" 2>/dev/null || true
 fi
 
+if [ "$ADD_RUST_BUILD" = "true" ]; then
+  cat >> "$DEFCONFIG" << 'EOF'
+CONFIG_RUST=y
+CONFIG_ANDROID_BINDER_IPC_RUST=m
+EOF
+  echo "assemble-oem-defconfig: Rust support enabled"
+fi
+
 # Validate symbols: prune any CONFIG_KSU_SUSFS_* that lacks a Kconfig definition
 if [ -n "$KCONFIG_SEARCH_DIR" ] && [ -d "$KCONFIG_SEARCH_DIR" ]; then
   tmpfile=$(mktemp)
@@ -97,6 +106,7 @@ fi
 # Disable IKHEADERS — embeds kernel headers in image, not needed and
 # triggers build failures when cpio/xz tools are missing on CI runners
 sed -i 's/^CONFIG_IKHEADERS=y/# CONFIG_IKHEADERS is not set/' "$DEFCONFIG" 2>/dev/null || true
+sed -i 's/^CONFIG_WERROR=y/# CONFIG_WERROR is not set/' "$DEFCONFIG" 2>/dev/null || true
 
 # LTO mode override
 LTO_MODE="${LTO_MODE:-thin}"
