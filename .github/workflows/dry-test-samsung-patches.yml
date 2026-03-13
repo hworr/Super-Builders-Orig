@@ -375,6 +375,7 @@ jobs:
           CROSS_COMPILE=aarch64-linux-gnu-"
 
         $MAKE "${DEFCONFIG_NAME}"
+        scripts/config --file out/.config -d WERROR 2>/dev/null || true
         $MAKE -j"$(nproc)" prepare
 
         PATCH_DIR="$GITHUB_WORKSPACE/$VERSION_DIR/SukiSU-Ultra/patches"
