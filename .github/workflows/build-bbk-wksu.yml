@@ -27,6 +27,14 @@ on:
         description: "Promote ZRAM to builtin (=y)"
         type: boolean
         default: false
+      add_ptrace_fix:
+        description: "Apply ptrace leak fix (kernels < 5.16)"
+        type: boolean
+        default: true
+      add_perf_patches:
+        description: "Apply WildKernels performance patches"
+        type: boolean
+        default: true
       lto_mode:
         description: "LTO mode"
         type: choice
@@ -40,10 +48,6 @@ on:
         description: "WKSU commit (empty = pinned default)"
         type: string
         default: ""
-      rust_build:
-        description: "Enable Rust support (6.12+ vendor kernels)"
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       device:
@@ -61,6 +65,12 @@ on:
       add_zram:
         type: boolean
         default: false
+      add_ptrace_fix:
+        type: boolean
+        default: true
+      add_perf_patches:
+        type: boolean
+        default: true
       lto_mode:
         type: string
         default: thin
@@ -70,12 +80,16 @@ on:
       sukisu_commit:
         type: string
         default: ""
-      rust_build:
-        type: boolean
-        default: false
 
 jobs:
+  download-dependencies:
+    uses: ./.github/workflows/cache-dependencies.yml
+    permissions:
+      contents: read
+      actions: write
+
   build:
+    needs: [download-dependencies]
     name: "BBK WKSU — ${{ inputs.device }}"
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -151,8 +165,8 @@ jobs:
         if [ ! -d "$GITHUB_WORKSPACE/$VERSION_DIR" ]; then
           case "$KERNEL_VER" in
             5.4)   VERSION_DIR="android12-5.4" ;;
-            5.10)  VERSION_DIR="android12-5.10" ;;
-            5.15)  VERSION_DIR="android13-5.15" ;;
+            5.10)  VERSION_DIR="android13-5.10" ;;
+            5.15)  VERSION_DIR="android14-5.15" ;;
             6.1)   VERSION_DIR="android14-6.1" ;;
             6.6)   VERSION_DIR="android15-6.6" ;;
             6.12)  VERSION_DIR="android16-6.12" ;;
@@ -184,7 +198,14 @@ jobs:
           echo "EXTRA_ARTIFACTS=$EXTRA_ARTIFACTS"
           echo "VERSION_DIR=$VERSION_DIR"
           echo "GKI_TAG=$GKI_TAG"
-          echo "OEM_HELPERS=$GITHUB_WORKSPACE/android12-5.10/build-helpers"
+          echo "OGKI_HELPERS=$GITHUB_WORKSPACE/android12-5.10/build-helpers"
+          if [ "$KERNEL_VER" = "6.12" ]; then
+            echo "RUST_BUILD_REQUIRED=true"
+            echo "LTO_OVERRIDE=none"
+          else
+            echo "RUST_BUILD_REQUIRED=false"
+            echo "LTO_OVERRIDE="
+          fi
         } >> "$GITHUB_ENV"
 
         echo "Device: $DEVICE_NAME ($BRAND) | SoC: $SOC ($CODENAME) | Kernel: $KERNEL_VER | Android: $ANDROID_VER"
@@ -206,39 +227,10 @@ jobs:
         echo "DEFCONFIG=$SYNC_DIR/kernel_platform/common/arch/arm64/configs/gki_defconfig" >> "$GITHUB_ENV"
         echo "DEFCONFIG_FRAGMENT=$SYNC_DIR/kernel_platform/common/arch/arm64/configs/wild_gki.fragment" >> "$GITHUB_ENV"
 
-    - name: Setup Rust Toolchain
-      if: inputs.rust_build
-      run: |
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none
-        source "$HOME/.cargo/env"
-        cargo install bindgen-cli --version 0.69.5
-        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
-        RUSTC_BIN=""
-        for base in "$SYNC_DIR/kernel_platform/prebuilts" "$SYNC_DIR/kernel_platform/prebuilts-master"; do
-          [ -d "$base/rust/linux-x86/" ] || continue
-          latest=$(ls -d "$base/rust/linux-x86/1."* 2>/dev/null | sort -V | head -n1 || true)
-          if [ -n "$latest" ] && [ -x "$latest/bin/rustc" ]; then
-            RUSTC_BIN="$latest/bin"
-            break
-          fi
-        done
-
-        CLANG_BIN=$(find "$SYNC_DIR/kernel_platform/prebuilts/clang/host/linux-x86/" -maxdepth 1 -type d -name 'clang-*' 2>/dev/null | sort -V | tail -1)
-
-        {
-          echo "RUST_BUILD=true"
-          [ -n "$RUSTC_BIN" ] && echo "RUSTC=$RUSTC_BIN/rustc"
-          [ -n "$CLANG_BIN" ] && echo "LIBCLANG_PATH=$(realpath "$CLANG_BIN")/lib"
-          echo "BINDGEN=bindgen"
-        } >> "$GITHUB_ENV"
-
-        echo "Rust: rustc=${RUSTC_BIN:-system} bindgen=$(which bindgen)"
-
     - name: ABI Bypass
       run: |
         cd "$SYNC_DIR"
-        bash "$OEM_HELPERS/bypass-oem-abi.sh"
+        bash "$OGKI_HELPERS/bypass-ogki-abi.sh"
 
     - name: Remove Dirty Suffix
       run: |
@@ -273,9 +265,28 @@ jobs:
 
         echo "Kernel: ${KERNEL_VER}.${SUBLEVEL}"
 
-    - name: Clone AnyKernel3
+    - name: Setup Rust Toolchain
+      if: env.RUST_BUILD_REQUIRED == 'true'
       run: |
-        git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git "$GITHUB_WORKSPACE/AnyKernel3"
+        cargo install --locked bindgen-cli@0.69.5
+        RUSTC_BIN=$(find "$SYNC_DIR/kernel_platform/prebuilts/rust/" -maxdepth 5 -type f -name 'rustc' 2>/dev/null | head -1)
+        CLANG_DIR=$(find "$SYNC_DIR/kernel_platform/prebuilts/clang/host/linux-x86/" -maxdepth 1 -type d -name 'clang-*' 2>/dev/null | sort -V | tail -1)
+        if [ -n "$CLANG_DIR" ]; then
+          CLANG_LIB="$(realpath "$CLANG_DIR")/lib"
+        else
+          CLANG_LIB="$(llvm-config --libdir 2>/dev/null || echo /usr/lib/llvm-18/lib)"
+        fi
+        {
+          echo "RUSTC=${RUSTC_BIN:-rustc}"
+          echo "LIBCLANG_PATH=$CLANG_LIB"
+          echo "BINDGEN=$(which bindgen)"
+        } >> "$GITHUB_ENV"
+
+    - name: Download AnyKernel3
+      uses: actions/download-artifact@v4
+      with:
+        name: anykernel3
+        path: AnyKernel3
 
     - name: Setup WKSU
       working-directory: ${{ env.KERNEL_COMMON }}
@@ -337,11 +348,21 @@ jobs:
           bash "$FIX" . "$SUBLEVEL" "$ANDROID_VER" "$KERNEL_VER" ""
         fi
 
+    - name: Apply Kernel Patches
+      if: inputs.add_ptrace_fix || inputs.add_perf_patches
+      working-directory: ${{ env.KERNEL_COMMON }}
+      env:
+        ADD_PTRACE: ${{ inputs.add_ptrace_fix }}
+        ADD_PERF: ${{ inputs.add_perf_patches }}
+      run: |
+        git clone --depth=1 https://github.com/WildKernels/kernel_patches.git "$GITHUB_WORKSPACE/kernel_patches"
+        bash "$OGKI_HELPERS/apply-kernel-patches.sh" . "$KERNEL_VER" "$GITHUB_WORKSPACE/kernel_patches"
+
     - name: Apply HMBird Patch
-      if: env.HMBIRD == 'true'
+      if: env.HMBIRD == 'true' && env.KERNEL_VER != '6.12'
       working-directory: ${{ env.KERNEL_COMMON }}
       run: |
-        HMBIRD_SCRIPT="$OEM_HELPERS/hmbird-setup.sh"
+        HMBIRD_SCRIPT="$OGKI_HELPERS/hmbird-setup.sh"
         if [ -f "$HMBIRD_SCRIPT" ]; then
           bash "$HMBIRD_SCRIPT" "$SYNC_DIR/kernel_platform" || true
         else
@@ -355,13 +376,15 @@ jobs:
         ADD_ZEROMOUNT: ${{ inputs.add_zeromount }}
         ADD_KPM: ${{ inputs.add_kpm }}
         ADD_ZRAM: ${{ inputs.add_zram }}
-        ADD_RUST_BUILD: ${{ inputs.rust_build }}
         LTO_MODE: ${{ inputs.lto_mode }}
       run: |
-        OEM_DEFCONFIG_SCRIPT="$OEM_HELPERS/assemble-oem-defconfig.sh"
-        if [ -f "$OEM_DEFCONFIG_SCRIPT" ]; then
+        [[ "${LTO_OVERRIDE:-}" == "none" ]] && export LTO_MODE=none
+        [[ "${RUST_BUILD_REQUIRED:-}" == "true" ]] && export ADD_RUST_BUILD=true
+
+        OGKI_DEFCONFIG_SCRIPT="$OGKI_HELPERS/assemble-ogki-defconfig.sh"
+        if [ -f "$OGKI_DEFCONFIG_SCRIPT" ]; then
           KCONFIG_SEARCH_DIR="$KERNEL_COMMON" \
-            bash "$OEM_DEFCONFIG_SCRIPT" "$DEFCONFIG" "$KSU_VARIANT"
+            bash "$OGKI_DEFCONFIG_SCRIPT" "$DEFCONFIG" "$KSU_VARIANT"
         else
           FRAGMENT="$GITHUB_WORKSPACE/$VERSION_DIR/defconfig.fragment"
           HELPERS="$GITHUB_WORKSPACE/$VERSION_DIR/build-helpers"
@@ -379,22 +402,42 @@ jobs:
       run: |
         BUILD_RC=0
         CPUD="${CODENAME:-}"
-        if [ -z "$CPUD" ]; then
-          echo "Device has no QCOM codename, using direct build"
-        fi
+        [[ "${LTO_OVERRIDE:-}" == "none" ]] && LTO_MODE=none
+        [ -n "${RUSTC:-}" ] && export RUSTC LIBCLANG_PATH BINDGEN
 
-        # Detect prebuilt clang from repo sync
         CLANG_DIR=$(find kernel_platform/prebuilts/clang/host/linux-x86/ -maxdepth 1 -type d -name 'clang-*' 2>/dev/null | sort -V | tail -1)
         if [ -n "$CLANG_DIR" ] && [ -x "$(realpath "$CLANG_DIR")/bin/clang" ]; then
           export PATH="$(realpath "$CLANG_DIR")/bin:$PATH"
           echo "Using prebuilt clang: $CLANG_DIR"
         else
-          echo "No working prebuilt clang — installing system clang"
           sudo apt-get -qq install -y clang lld llvm >/dev/null 2>&1
         fi
 
-        # Bazel first (sm8650+), then OEM script, then direct make
-        if [ -n "$CPUD" ] && [ -f "kernel_platform/build_with_bazel.py" ] && [ -f "kernel_platform/build.config" ]; then
+        if [ "$KERNEL_VER" = "6.12" ]; then
+          cd "$KERNEL_COMMON"
+
+          KBT="$SYNC_DIR/kernel_platform/prebuilts/kernel-build-tools/linux-x86/bin"
+          [ -d "$KBT" ] && export PATH="$KBT:$PATH"
+
+          export LLVM=1 LLVM_IAS=1 ARCH=arm64 SUBARCH=arm64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export LD=ld.lld HOSTLD=ld.lld AR=llvm-ar NM=llvm-nm
+          export OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
+          [ -x "$KBT/pahole" ] && export PAHOLE="$KBT/pahole"
+
+          set +u
+          source "$SYNC_DIR/kernel_platform/build/kernel/_setup_env.sh" 2>/dev/null || true
+          set -u
+
+          make O=out gki_defconfig
+
+          scripts/config --file out/.config -e LTO_CLANG -e LTO_CLANG_NONE \
+            -d LTO_CLANG_THIN -d LTO_CLANG_FULL
+
+          make O=out olddefconfig
+          make -j"$(nproc)" O=out KCFLAGS="-Wno-error" || BUILD_RC=$?
+          cd "$SYNC_DIR"
+        elif [ -n "$CPUD" ] && [ -f "kernel_platform/build_with_bazel.py" ] && [ -f "kernel_platform/build.config" ]; then
           cd kernel_platform
           python3 build_with_bazel.py -t "$CPUD" "$BUILD_METHOD" || BUILD_RC=$?
           cd ..
@@ -404,23 +447,16 @@ jobs:
             bash kernel_platform/oplus/build/oplus_build_kernel.sh "$CPUD" "$BUILD_METHOD" || BUILD_RC=$?
         else
           cd "$KERNEL_COMMON"
-
-          sed -i 's|\(.\)obj-\$(CONFIG_KSU) += kernelsu/|\1\nobj-$(CONFIG_KSU) += kernelsu/|' drivers/Makefile 2>/dev/null || true
-
-          REAL_CLANG=$(command -v clang)
-          printf '#!/bin/bash\nargs=()\nfor a in "$@"; do [[ "$a" == -Werror* ]] || args+=("$a"); done\nexec "%s" "${args[@]}"\n' "$REAL_CLANG" > /tmp/clang-no-werror
-          chmod +x /tmp/clang-no-werror
-
           make O=out ARCH=arm64 LLVM=1 \
-            CC=/tmp/clang-no-werror LD=ld.lld AR=llvm-ar NM=llvm-nm \
+            CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
             CROSS_COMPILE=aarch64-linux-gnu- \
             gki_defconfig
-
           make -j"$(nproc)" O=out ARCH=arm64 LLVM=1 \
-            CC=/tmp/clang-no-werror LD=ld.lld AR=llvm-ar NM=llvm-nm \
+            CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm \
             OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
-            CROSS_COMPILE=aarch64-linux-gnu- || BUILD_RC=$?
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            KCFLAGS="-Wno-error" || BUILD_RC=$?
           cd "$SYNC_DIR"
         fi
 
@@ -532,6 +568,7 @@ jobs:
         ADD_ZRAM: ${{ inputs.add_zram }}
         LTO_MODE: ${{ inputs.lto_mode }}
       run: |
+        [[ "${LTO_OVERRIDE:-}" == "none" ]] && LTO_MODE=none
         S() { [[ "$1" == "true" ]] && echo "Enabled" || echo "Disabled"; }
         {
           echo "## WKSU | ${DEVICE_NAME} — ${KERNEL_VER}.${SUBLEVEL}"

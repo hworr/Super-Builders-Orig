@@ -37,6 +37,12 @@ on:
       add_kpm:
         type: boolean
         default: false
+      add_ptrace_fix:
+        type: boolean
+        default: true
+      add_perf_patches:
+        type: boolean
+        default: true
       sukisu_commit:
         type: string
         default: ""
@@ -217,6 +223,15 @@ jobs:
       run: |
         FIX="$GITHUB_WORKSPACE/$VERSION_DIR/build-helpers/fix-susfs-compat.sh"
         [ -f "$FIX" ] && bash "$FIX" . "$SUBLEVEL" "$ANDROID_VER" "$KERNEL_VER" "$KERNEL_PATCHES" || true
+
+    - name: Apply Kernel Patches
+      if: inputs.add_ptrace_fix || inputs.add_perf_patches
+      working-directory: ${{ env.KERNEL_ROOT }}/common
+      env:
+        ADD_PTRACE: ${{ inputs.add_ptrace_fix }}
+        ADD_PERF: ${{ inputs.add_perf_patches }}
+      run: |
+        bash "$GITHUB_WORKSPACE/android12-5.10/build-helpers/apply-kernel-patches.sh" . "$KERNEL_VER" "$KERNEL_PATCHES"
 
     - name: Setup Baseband Guard
       if: inputs.add_bbg
