@@ -15,7 +15,7 @@
         "compiler_info": "Android (7284624, based on r416183b) clang version 12.0.5"
       }
     },
-    "_lake_a15_disabled": {
+    "lake_a15": {
       "name": "Xiaomi Redmi 14C",
       "codename": "lake",
       "android_version": "android15",
@@ -28,8 +28,7 @@
         "build_user": "kleaf",
         "build_host": "build-host",
         "compiler_info": "Android (11368308, +pgo, +bolt, +lto, +mlgo, based on r510928) clang version 18.0.0"
-      },
-      "_note": "Temporarily disabled to test boot without stock identity injection"
+      }
     }
   },
   "_template": {
