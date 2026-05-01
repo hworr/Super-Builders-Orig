@@ -218,7 +218,11 @@ jobs:
           case "$base" in
             50_*|51_*|60_*|70_*|*_archive/*) continue ;;
           esac
-          patch -p1 -F3 --no-backup-if-mismatch < "$p"
+          if patch --dry-run -p1 -F3 --no-backup-if-mismatch < "$p" >/dev/null; then
+            patch -p1 -F3 --no-backup-if-mismatch < "$p"
+          else
+            echo "::warning::Skipping pre-patch $base (does not apply cleanly on ${ANDROID_VER}-${KERNEL_VER}.${SUBLEVEL})"
+          fi
         done
 
     - name: Apply Upstream SUSFS Patch
@@ -538,3 +542,4 @@ jobs:
         } >> "$GITHUB_STEP_SUMMARY"
         REPORT="$GITHUB_WORKSPACE/$VERSION_DIR/build-helpers/report-config.sh"
         [ -f "$REPORT" ] && bash "$REPORT" "$KERNEL_ROOT" "$ANDROID_VER" "$KERNEL_VER" || true
+		
