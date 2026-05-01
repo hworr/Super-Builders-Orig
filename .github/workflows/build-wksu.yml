@@ -542,4 +542,3 @@ jobs:
         } >> "$GITHUB_STEP_SUMMARY"
         REPORT="$GITHUB_WORKSPACE/$VERSION_DIR/build-helpers/report-config.sh"
         [ -f "$REPORT" ] && bash "$REPORT" "$KERNEL_ROOT" "$ANDROID_VER" "$KERNEL_VER" || true
-		
