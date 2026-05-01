@@ -202,6 +202,25 @@ jobs:
         FIX_SCRIPT="$GITHUB_WORKSPACE/$VERSION_DIR/build-helpers/fix-old-kernel-compat.sh"
         [ -f "$FIX_SCRIPT" ] && bash "$FIX_SCRIPT" "$KERNEL_ROOT/common" "$SUBLEVEL" || true
 
+    - name: Apply Local WildKSU Patchset
+      working-directory: ${{ env.KERNEL_ROOT }}/common
+      run: |
+        PATCH_DIR="$GITHUB_WORKSPACE/$VERSION_DIR/WildKSU/patches"
+        [ -d "$PATCH_DIR" ] || exit 0
+
+        shopt -s nullglob
+        PRE_PATCHES=("$PATCH_DIR"/[0-9][0-9][0-9]*.patch)
+        shopt -u nullglob
+        [ ${#PRE_PATCHES[@]} -gt 0 ] || exit 0
+
+        for p in "${PRE_PATCHES[@]}"; do
+          base="$(basename "$p")"
+          case "$base" in
+            50_*|51_*|60_*|70_*|*_archive/*) continue ;;
+          esac
+          patch -p1 -F3 --no-backup-if-mismatch < "$p"
+        done
+
     - name: Apply Upstream SUSFS Patch
       if: inputs.add_susfs
       working-directory: ${{ env.KERNEL_ROOT }}/common
